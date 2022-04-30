@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, Button,TouchableOpacity } from 'react-native';
-import * as Sharing from 'expo-sharing';
+// import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
 
@@ -10,7 +10,6 @@ export default function App() {
 
   const [img, setImg] = useState("");
   const [nombreActor, setNombreActor] = useState("");
-
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
@@ -28,8 +27,9 @@ export default function App() {
     }
 
     setImg({
-      localUri: pickerResult.uri,
-      type: pickerResult.type
+      uri: pickerResult.uri,
+      type: 'image/jpeg',
+      name: 'photo.jpg'
     });
 
     console.log(img);
@@ -37,9 +37,7 @@ export default function App() {
     const url = 'https://whois.nomada.cloud/upload';
     const formData = new FormData();
 
-    formData.append('file', img.localUri);
-
-    console.log(formData);
+    formData.append('file', img);
 
     const resultado = await fetch(url, {
       method: 'post',
@@ -50,16 +48,16 @@ export default function App() {
     });
 
     const datos = await resultado.json();
-    setNombreActor(datos.error);
+    setNombreActor(datos.actorName);
     console.log(formData);
   }
   
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Busca una imagen</Text>
+      <Text style={styles.title}>¿Quien es el famoso?</Text>
       <TouchableOpacity onPress={abrirImagenAsync}>
-        <Image style={styles.img} source={img !== "" ? {uri:img.localUri} : {uri: 'https://i0.wp.com/i.pinimg.com/736x/a9/67/05/a9670576ee306eb165c4666ca38d98b1.jpg?ssl=1'}}/>
+        <Image style={styles.img} source={img !== "" ? {uri:img.uri} : require('./assets/select.png')}/>
       </TouchableOpacity>
       <StatusBar style="auto" />
       { img ? (
@@ -77,21 +75,30 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#181818',
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
+  title: {
+    fontSize: 48,
+    fontStyle: 'normal',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#0f172a'
+  },
+
   text: {
-    fontSize: 35,
-    fontStyle: 'italic',
-    color: '#ddd',
-    top: -10
+    fontSize: 18,
+    fontStyle: 'normal',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#0f172a'
   },
 
   img: {
-    height: 280,
-    width: 280,
+    height: 300,
+    width: 300,
     borderRadius: 80,
     margin: 40,
     // resizeMode: 'contain'
