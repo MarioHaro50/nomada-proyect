@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, Button,TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
@@ -9,8 +9,10 @@ import * as ImagePicker from 'expo-image-picker';
 export default function App() {
 
   const [img, setImg] = useState(null);
-  const [nombreActor, setNombreActor] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const [nombreActor, setNombreActor] = useState("");
+  const [modal, setModal] = useState(false);
+  const [datosActor, setDatosActor] = useState({})
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
@@ -54,12 +56,32 @@ export default function App() {
     });
 
     const datos = await resultado.json();
-    setNombreActor(datos.actorName);
-    console.log(formData);
 
+    setNombreActor(datos.actorName);
+    obtenerInfo(datos.actorName);
+    
+    setModal(true);
     setIsPending(false);
   }
   
+  const obtenerInfo = async nombre => {
+    const urlInfo = `https://api.themoviedb.org/3/search/person?api_key=30db1237b9167f8afaf9e065b90d16b8&language=en-US&query=${nombre}&page=1&include_adult=true`;
+    const requestOptions = {
+      method: 'GET'
+    };
+
+    const resultadoInfo = await fetch(urlInfo, requestOptions);
+    const newDatos = await resultadoInfo.json();
+    setDatosActor(await newDatos.results);
+  }
+
+  const ordenarInfo = async () => {
+    await datosActor.forEach(info => {
+      info.known_for.forEach(i => {
+        console.log(i.original_title);
+      });
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -67,10 +89,34 @@ export default function App() {
       <TouchableOpacity onPress={abrirImagenAsync}>
         <Image style={styles.img} source={img !== null ? {uri:img.uri} : require('./assets/select.png')}/>
       </TouchableOpacity>
+      
       <StatusBar style="auto" />
       { img ? (
           <>
-            {isPending === false ? <Text style={styles.text} > {'Listo, su nombre es '+nombreActor+'!!!'}</Text> : null}
+            { 
+              isPending === false ? (
+                <Modal
+                  animationType='slide'
+                  onDismiss={() => console.log('Cerrando modal')}
+                  onShow={ordenarInfo}
+                  // transparent
+                  visible={modal}
+                >
+                  <Text style={styles.title}>{nombreActor}</Text>
+                  <Image
+                  style={styles.img}
+                    source={{uri:img.uri}}
+                  />
+                  <Button
+                    title='Regresar'
+                    onPress={()=> setModal(false)}
+                  />
+
+                </Modal>
+              ) : (
+                null
+              )
+            }
           </>
         ) : (
           <View/>
