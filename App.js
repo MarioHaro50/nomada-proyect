@@ -8,11 +8,15 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function App() {
 
-  const [img, setImg] = useState("");
+  const [img, setImg] = useState(null);
   const [nombreActor, setNombreActor] = useState("");
+  const [isPending, setIsPending] = useState(false);
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
+
+    setIsPending(true);
+
     let resultadoPermisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (resultadoPermisos.granted === false) {
@@ -26,18 +30,20 @@ export default function App() {
       return;
     }
 
-    setImg({
+    setImg({uri: pickerResult.uri});
+
+    let imgObject = {
       uri: pickerResult.uri,
       type: 'image/jpeg',
       name: 'photo.jpg'
-    });
+    };
 
     console.log(img);
 
     const url = 'https://whois.nomada.cloud/upload';
     const formData = new FormData();
 
-    formData.append('file', img);
+    formData.append('file', imgObject);
 
     const resultado = await fetch(url, {
       method: 'post',
@@ -50,6 +56,8 @@ export default function App() {
     const datos = await resultado.json();
     setNombreActor(datos.actorName);
     console.log(formData);
+
+    setIsPending(false);
   }
   
 
@@ -57,12 +65,12 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.title}>¿Quien es el famoso?</Text>
       <TouchableOpacity onPress={abrirImagenAsync}>
-        <Image style={styles.img} source={img !== "" ? {uri:img.uri} : require('./assets/select.png')}/>
+        <Image style={styles.img} source={img !== null ? {uri:img.uri} : require('./assets/select.png')}/>
       </TouchableOpacity>
       <StatusBar style="auto" />
       { img ? (
           <>
-            <Text style={styles.text} >Listo, su nombre es {nombreActor}</Text>
+            {isPending === false ? <Text style={styles.text} > {'Listo, su nombre es '+nombreActor+'!!!'}</Text> : null}
           </>
         ) : (
           <View/>
