@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, ToastAndroid, Text, View, Image, Modal, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import { StyleSheet, ToastAndroid, Text, View, Image, Modal, TouchableOpacity, ScrollView, ImageBackground, ActivityIndicator } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
@@ -19,7 +19,8 @@ export default function App() {
   const [popularity, setPopularity] = useState('');
   const [errorsito, setErrorsito] = useState('');
   const [mensajito, setMensajito] = useState('Selecciona una foto de algún famoso');
-  const [type, setType] = useState ('ok');
+  const [type, setType] = useState ('#3843d0');
+  const [spinner, setSpinner] = useState('none');
 
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
@@ -43,7 +44,7 @@ export default function App() {
     }
 
     setImg({uri: pickerResult.uri});
-    setType('ok')
+    setType('#3843d0');
     setMensajito('Obteniendo...');
 
     let imgObject = {
@@ -73,13 +74,20 @@ export default function App() {
       obtenerInfo(datos.actorName);
       
       setErrorsito(datos.error);
-      console.log(errorsito);
+      setMensajito(datos.actorName);
+      if(datos.actorName !== "" ) {
+        setType('#4ADE80');
       
-      setModal(true);
+        setTimeout(() => {
+          setModal(true);
+        }, 2000);
+      } else {
+        setModal(true);
+      }
+      
     } catch (e) {
-      
+      setType('#FACC15');
       setMensajito('Error desconocido, vuelva a intentarlo');
-      setType('error');
     }
     
     setIsPending(false);
@@ -103,8 +111,8 @@ export default function App() {
 
       setDatosActor(newDatos.results);
     } catch (e) {
+      setType('#FACC15');
       setMensajito('Error desconocido, vuelva a intentarlo');
-      setType('error');
     }
 
     setIsPending(false);
@@ -134,28 +142,31 @@ export default function App() {
       });
       
       setMensajito('Selecciona una foto de algún famoso');
-      setType('ok');
+      setType('#3843D0');
     } catch(e) {
       if(e.messsage === "undefined is not a function (near '...datosActor.map...')"){
         setMensajito('Error desconocido, vuelva a intentarlo');
-        setType('error');
+        setType('#FACC15');
+        setMensajito('Error desconocido, vuelva a intentarlo');
         console.log(e.message);
       } else if(errorsito === "InvalidImageFormatException: Request has invalid image format") {
         setMensajito('Solo se permite imagenes en formato .JPG o .PNG');
-        setType('error');
+        setType('#F75555');
         console.log(e.message);
       } else {
         // ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
         setMensajito(errorsito);
-        setType('error');
+        setType('#F75555');
         console.log(e.message);
       }
       setModal(false);
     }
 
+    setSpinner('flex');
     setTimeout(() => {
       setMovies(moviesList);
-    }, 500);
+      setSpinner('none');
+    }, 1000);
 
     setIsPending(false);
   }
@@ -166,7 +177,16 @@ export default function App() {
       <TouchableOpacity onPress={abrirImagenAsync}>
         <Image style={styles.img} source={img !== null ? {uri:img.uri} : require('./assets/select.png')}/>
       </TouchableOpacity>
-      <Text style={type !== 'error' ? styles.alertaOk : styles.alertaErr}>{mensajito}</Text>
+      <Text 
+        style={{
+          backgroundColor: type,
+          color: '#f1f5f9',
+          padding: 15,
+          borderRadius:10
+        }}
+      >
+        {mensajito}
+      </Text>
       <StatusBar style="auto" />
       { img ? (
           <>
@@ -214,6 +234,7 @@ export default function App() {
                     </ImageBackground>
                     <View style={styles.theContainer}>
                       <Text style={styles.pelisTitle}>Peliculas:</Text>
+                      <ActivityIndicator style={{display: spinner}} size='large' color="#3843d0" />
                       {
                         (movies !== [] && datosActor !== {})  ?
                         movies.map( (m, i) => {
@@ -283,20 +304,6 @@ const styles = StyleSheet.create({
     borderRadius: 80,
     margin: 40,
     // resizeMode: 'contain'
-  },
-
-  alertaOk: {
-    backgroundColor: '#3843d0',
-    color: '#f1f5f9',
-    padding: 15,
-    borderRadius:10
-  },
-
-  alertaErr: {
-    backgroundColor: '#F75555',
-    color: '#f1f5f9',
-    padding: 15,
-    borderRadius:10
   },
 
   botonContainer: {
