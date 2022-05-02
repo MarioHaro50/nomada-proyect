@@ -49,14 +49,26 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
 
+  val: {
+    color: '#0F172A',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginTop: 15
+  },
+
   infoContainer: {
     width: '55%',
     marginRight: 10
   },
 
+  imgContainer: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+
   imgMovie: {
-    width:150,
-    height: 220,
+    width:140,
+    height: 240,
     borderRadius: 20
   }
 });
