@@ -76,12 +76,13 @@ export default function App() {
       console.log(errorsito);
       
       setModal(true);
-      setIsPending(false);
     } catch (e) {
       
       setMensajito('Error desconocido, vuelva a intentarlo');
       setType('error');
     }
+    
+    setIsPending(false);
     
   }
   
