@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import { StyleSheet, ToastAndroid, Text, View, Image, Modal, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
@@ -17,12 +17,15 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [imgActor, setImgActor] = useState("");
   const [popularity, setPopularity] = useState('');
+  const [errorsito, setErrorsito] = useState('');
 
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
 
     setIsPending(true);
+    
+    setImg(null);
 
     let resultadoPermisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
@@ -45,63 +48,94 @@ export default function App() {
       name: 'photo.jpg'
     };
 
-    console.log(img);
-
     const url = 'https://whois.nomada.cloud/upload';
     const formData = new FormData();
 
     formData.append('file', imgObject);
 
-    const resultado = await fetch(url, {
-      method: 'post',
-      headers: {
-        'Nomada': 'ZTA1YWNjOGUtOWRiMS00NThjLWE0ZTAtMzliYzgzZjRlY2I0'
-      },
-      body: formData
-    });
+    try {
+      const resultado = await fetch(url, {
+        method: 'post',
+        headers: {
+          'Nomada': 'ZTA1YWNjOGUtOWRiMS00NThjLWE0ZTAtMzliYzgzZjRlY2I0'
+        },
+        body: formData
+      });
 
-    const datos = await resultado.json();
+      const datos = await resultado.json();
 
-    setNombreActor(datos.actorName);
-    obtenerInfo(datos.actorName);
+      setNombreActor(datos.actorName);
+      obtenerInfo(datos.actorName);
+      
+      setErrorsito(datos.error);
+      console.log(errorsito);
+
+      setModal(true);
+      setIsPending(false);
+    } catch (e) {
+      console.log('Se exedió el número de peticiones');
+    }
     
-    setModal(true);
-    setIsPending(false);
   }
   
   const obtenerInfo = async nombre => {
+
+    setIsPending(true);
+
+    setDatosActor({});
+  
     const urlInfo = `https://api.themoviedb.org/3/search/person?api_key=30db1237b9167f8afaf9e065b90d16b8&language=en-US&query=${nombre}&page=1&include_adult=false`;
     const requestOptions = {
       method: 'GET'
     };
 
-    const resultadoInfo = await fetch(urlInfo, requestOptions);
-    const newDatos = await resultadoInfo.json();
+    try {
+      const resultadoInfo = await fetch(urlInfo, requestOptions);
+      const newDatos = await resultadoInfo.json();
 
-    setDatosActor(newDatos.results);
+      setDatosActor(newDatos.results);
+
+      setIsPending(false);
+    } catch (e) {
+      console.log('Se exedió el número de peticiones');
+    }
+
   }
 
   const ordenarInfo = () => {
 
-    const moviesList = [];
+    setIsPending(true);
 
-     datosActor.map(info => {
+    setMovies([]);
 
-      setImgActor(info.profile_path);
-      setPopularity(info.popularity);
+    let moviesList = [];
 
-      info.known_for.map(i => {
+    try{
+       datosActor.map(info => {
 
-        moviesList.push([i]);
-
+        setImgActor(info.profile_path);
+        setPopularity(info.popularity);
+  
+        info.known_for.map(i => {
+  
+          moviesList.push([i]);
+  
+        });
+  
       });
-
-    });
+    } catch(e) {
+      if(e.messsage !== "undefined is not a function"){
+        ToastAndroid.show(errorsito, ToastAndroid.SHORT);
+      } else {
+        ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
+      }
+      setModal(false);
+    }
 
     setMovies(moviesList);
-  }
 
-  console.log(imgActor);
+    setIsPending(false);
+  }
 
   return (
     <View style={styles.container}>
@@ -134,9 +168,9 @@ export default function App() {
                         <TouchableOpacity
                           onPress={()=> {
                             setMovies([]);
-                          //   setImg(null);
-                          //   setDatosActor({});
-                          //   setNombreActor("");
+                            setImg(null);
+                            setDatosActor({});
+                            setNombreActor("");
                             setModal(false);
                           }}
                           style={styles.button}
@@ -155,13 +189,13 @@ export default function App() {
                     <View style={styles.theContainer}>
                       <Text style={styles.pelisTitle}>Peliculas:</Text>
                       {
-                        movies.length !== 0 ?
-                        movies.map( m => {
+                        (movies !== [] && datosActor !== {})  ?
+                        movies.map( (m, i) => {
                           return(
                             m[0].original_title !== undefined || m[0].overview !== undefined ||
                             m[0].vote_average !== undefined || m[0].poster_path !== undefined  ? 
                             <Movie
-                              key={m[0].id} 
+                              key={i} 
                               titleMovie={m[0].original_title}
                               description={m[0].overview}
                               val={m[0].vote_average}
