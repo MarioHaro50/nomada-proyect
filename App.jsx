@@ -102,8 +102,6 @@ export default function App() {
       const newDatos = await resultadoInfo.json();
 
       setDatosActor(newDatos.results);
-
-      setIsPending(false);
     } catch (e) {
       setMensajito('Error desconocido, vuelva a intentarlo');
       setType('error');
@@ -155,7 +153,9 @@ export default function App() {
       setModal(false);
     }
 
-    setMovies(moviesList);
+    setTimeout(() => {
+      setMovies(moviesList);
+    }, 500);
 
     setIsPending(false);
   }
