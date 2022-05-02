@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity, ScrollView } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
+import Movie from './components/Movie';
 
 
 export default function App() {
@@ -12,7 +13,10 @@ export default function App() {
   const [isPending, setIsPending] = useState(false);
   const [nombreActor, setNombreActor] = useState("");
   const [modal, setModal] = useState(false);
-  const [datosActor, setDatosActor] = useState({})
+  const [datosActor, setDatosActor] = useState({});
+  const [movies, setMovies] = useState([]);
+  const [imgActor, setImgActor] = useState("");
+
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
@@ -65,23 +69,37 @@ export default function App() {
   }
   
   const obtenerInfo = async nombre => {
-    const urlInfo = `https://api.themoviedb.org/3/search/person?api_key=30db1237b9167f8afaf9e065b90d16b8&language=en-US&query=${nombre}&page=1&include_adult=true`;
+    const urlInfo = `https://api.themoviedb.org/3/search/person?api_key=30db1237b9167f8afaf9e065b90d16b8&language=en-US&query=${nombre}&page=1&include_adult=false`;
     const requestOptions = {
       method: 'GET'
     };
 
     const resultadoInfo = await fetch(urlInfo, requestOptions);
     const newDatos = await resultadoInfo.json();
-    setDatosActor(await newDatos.results);
+
+    setDatosActor(newDatos.results);
   }
 
-  const ordenarInfo = async () => {
-    await datosActor.forEach(info => {
-      info.known_for.forEach(i => {
-        console.log(i.original_title);
+  const ordenarInfo = () => {
+
+    const moviesList = [];
+
+     datosActor.map(info => {
+
+      setImgActor( info.profile_path);
+
+      info.known_for.map(i => {
+
+        moviesList.push([i]);
+
       });
+
     });
+
+    setMovies(moviesList);
   }
+
+  console.log(imgActor);
 
   return (
     <View style={styles.container}>
@@ -96,22 +114,57 @@ export default function App() {
             { 
               isPending === false ? (
                 <Modal
+                  styles={styles.modal}
                   animationType='slide'
                   onDismiss={() => console.log('Cerrando modal')}
                   onShow={ordenarInfo}
                   // transparent
                   visible={modal}
                 >
-                  <Text style={styles.title}>{nombreActor}</Text>
-                  <Image
-                  style={styles.img}
-                    source={{uri:img.uri}}
-                  />
-                  <Button
-                    title='Regresar'
-                    onPress={()=> setModal(false)}
-                  />
+                  <ScrollView>
+                    <View>
+                      <Image
+                      style={styles.fondo}
+                        source={imgActor !== null ? {uri:`https://image.tmdb.org/t/p/w500${imgActor}`} : {uri:img.uri}}
+                      />
+                      <Text style={styles.title}>{nombreActor}</Text>
+                    </View>
 
+                    {
+                      movies.length !== 0 ?
+                      movies.map( m => {
+                        return(
+                          m[0].original_title !== undefined || m[0].overview !== undefined ||
+                          m[0].vote_average !== undefined || m[0].poster_path !== undefined  ? 
+                          <Movie
+                            key={m[0].id} 
+                            titleMovie={m[0].original_title}
+                            description={m[0].overview}
+                            val={m[0].vote_average}
+                            img={m[0].poster_path}
+                          /> 
+                          : 
+                          <Movie
+                            key={'N/A'} 
+                            titleMovie={m[0].original_title}
+                            val= {'N/A'}
+                            img={'N/A'}
+                          />
+                        )
+                      }) : null
+                    }
+
+                    <Button
+                      title='Regresar'
+                      onPress={()=> {
+                        setMovies([]);
+                      //   setImg(null);
+                      //   setDatosActor({});
+                      //   setNombreActor("");
+                        setModal(false);
+                      }}
+                    />
+                  </ScrollView>
                 </Modal>
               ) : (
                 null
@@ -169,5 +222,12 @@ const styles = StyleSheet.create({
   textButton: {
     color: '#E1B251',
     fontSize: 20
+  },
+  modal: {
+    overflow: 'scroll'
+  },
+  fondo: {
+    width: '100%',
+    height: 300
   }
 });
