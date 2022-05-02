@@ -86,8 +86,8 @@ export default function App() {
       }
       
     } catch (e) {
-      setType('#FACC15');
-      setMensajito('Error desconocido, vuelva a intentarlo');
+      setType('#EF4444');
+      setMensajito('Error de red o servidor');
     }
     
     setIsPending(false);
@@ -111,8 +111,8 @@ export default function App() {
 
       setDatosActor(newDatos.results);
     } catch (e) {
-      setType('#FACC15');
-      setMensajito('Error desconocido, vuelva a intentarlo');
+      setType('#EF4444');
+      setMensajito('Error de red o servidor');
     }
 
     setIsPending(false);
@@ -145,18 +145,17 @@ export default function App() {
       setType('#3843D0');
     } catch(e) {
       if(e.messsage === "undefined is not a function (near '...datosActor.map...')"){
-        setMensajito('Error desconocido, vuelva a intentarlo');
-        setType('#FACC15');
-        setMensajito('Error desconocido, vuelva a intentarlo');
+        setType('#EF4444');
+        setMensajito('Error de red o servidor');
         console.log(e.message);
       } else if(errorsito === "InvalidImageFormatException: Request has invalid image format") {
         setMensajito('Solo se permite imagenes en formato .JPG o .PNG');
-        setType('#F75555');
+        setType('#EAB308');
         console.log(e.message);
       } else {
         // ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
         setMensajito(errorsito);
-        setType('#F75555');
+        setType('#EAB308');
         console.log(e.message);
       }
       setModal(false);
