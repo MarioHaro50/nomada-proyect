@@ -8,7 +8,7 @@ const Movie = (props) => {
       <Text>Valoración: {props.val}</Text>
       <Image
         source={{uri:`https://image.tmdb.org/t/p/w500${props.img}`}}
-        style={{width:280, height: 300}}
+        style={{width:150, height: 130}}
       />
     </View>
   );
