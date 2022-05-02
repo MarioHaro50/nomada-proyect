@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, Button, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
@@ -16,6 +16,7 @@ export default function App() {
   const [datosActor, setDatosActor] = useState({});
   const [movies, setMovies] = useState([]);
   const [imgActor, setImgActor] = useState("");
+  const [popularity, setPopularity] = useState('');
 
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
@@ -86,7 +87,8 @@ export default function App() {
 
      datosActor.map(info => {
 
-      setImgActor( info.profile_path);
+      setImgActor(info.profile_path);
+      setPopularity(info.popularity);
 
       info.known_for.map(i => {
 
@@ -122,48 +124,60 @@ export default function App() {
                   visible={modal}
                 >
                   <ScrollView>
-                    <View>
-                      <Image
+                    <ImageBackground 
+                      source={imgActor !== null ? {uri:`https://image.tmdb.org/t/p/w500${imgActor}`} : {uri:img.uri}}
+                      
                       style={styles.fondo}
-                        source={imgActor !== null ? {uri:`https://image.tmdb.org/t/p/w500${imgActor}`} : {uri:img.uri}}
-                      />
-                      <Text style={styles.title}>{nombreActor}</Text>
+                    >
+
+                      <View style={styles.botonContainer}>
+                        <TouchableOpacity
+                          onPress={()=> {
+                            setMovies([]);
+                          //   setImg(null);
+                          //   setDatosActor({});
+                          //   setNombreActor("");
+                            setModal(false);
+                          }}
+                          style={styles.button}
+                        >
+                        <Text style={styles.button__Text}>↩</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.mainContainer}>
+                        <Text style={styles.actorName}>{nombreActor}</Text>
+                        <View style={styles.popContainer}>
+                          <Text style={styles.pop}>Popularidad</Text>
+                          <Text style={styles.calif}>⭐{popularity}</Text>
+                        </View>
+                      </View>
+                    </ImageBackground>
+                    <View style={styles.theContainer}>
+                      <Text style={styles.pelisTitle}>Peliculas:</Text>
+                      {
+                        movies.length !== 0 ?
+                        movies.map( m => {
+                          return(
+                            m[0].original_title !== undefined || m[0].overview !== undefined ||
+                            m[0].vote_average !== undefined || m[0].poster_path !== undefined  ? 
+                            <Movie
+                              key={m[0].id} 
+                              titleMovie={m[0].original_title}
+                              description={m[0].overview}
+                              val={m[0].vote_average}
+                              img={m[0].poster_path}
+                            /> 
+                            : 
+                            <Movie
+                              key={'N/A'} 
+                              titleMovie={m[0].original_title}
+                              val= {'N/A'}
+                              img={'N/A'}
+                            />
+                          )
+                        }) : null
+                      }
                     </View>
-
-                    {
-                      movies.length !== 0 ?
-                      movies.map( m => {
-                        return(
-                          m[0].original_title !== undefined || m[0].overview !== undefined ||
-                          m[0].vote_average !== undefined || m[0].poster_path !== undefined  ? 
-                          <Movie
-                            key={m[0].id} 
-                            titleMovie={m[0].original_title}
-                            description={m[0].overview}
-                            val={m[0].vote_average}
-                            img={m[0].poster_path}
-                          /> 
-                          : 
-                          <Movie
-                            key={'N/A'} 
-                            titleMovie={m[0].original_title}
-                            val= {'N/A'}
-                            img={'N/A'}
-                          />
-                        )
-                      }) : null
-                    }
-
-                    <Button
-                      title='Regresar'
-                      onPress={()=> {
-                        setMovies([]);
-                      //   setImg(null);
-                      //   setDatosActor({});
-                      //   setNombreActor("");
-                        setModal(false);
-                      }}
-                    />
                   </ScrollView>
                 </Modal>
               ) : (
@@ -211,23 +225,80 @@ const styles = StyleSheet.create({
     // resizeMode: 'contain'
   },
 
+  botonContainer: {
+    display: 'flex',
+    alignItems: 'flex-start'
+  },
+
   button: {
-    backgroundColor: "#515E48",
-    padding: 12,
-    borderRadius: 6,
-    padding: 10,
-    margin:20
+    display: 'flex',
+    backgroundColor: "#ffffff77",
+    width: 65,
+    height: 65,
+    margin: 15,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  button__Text: {
+    color: '#0f172a',
+    fontWeight: 'bold',
   },
 
   textButton: {
     color: '#E1B251',
     fontSize: 20
   },
-  modal: {
-    overflow: 'scroll'
-  },
+
   fondo: {
+    display: 'flex',
     width: '100%',
-    height: 300
+    height: 300,
+    justifyContent: 'space-between'
+  },
+
+  mainContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    padding: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#00000055'
+  },
+
+  popContainer: {
+    display: 'flex'
+  },
+
+  pop: {
+    color: '#f1f5f9',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+  calif: {
+    color: '#f1f5f9',
+    fontSize:18,
+    fontWeight: 'bold',
+  },
+
+  actorName: {
+    color: '#f1f5f9',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+
+  theContainer: {
+    display: 'flex',
+    margin: 5,
+  },
+
+  pelisTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#0f172a',
+    marginBottom: 5,
+    marginLeft: 5
   }
 });
