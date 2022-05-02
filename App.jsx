@@ -18,6 +18,8 @@ export default function App() {
   const [imgActor, setImgActor] = useState("");
   const [popularity, setPopularity] = useState('');
   const [errorsito, setErrorsito] = useState('');
+  const [mensajito, setMensajito] = useState('Selecciona una foto de algún famoso');
+  const [type, setType] = useState ('ok');
 
   
   //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
@@ -25,7 +27,7 @@ export default function App() {
 
     setIsPending(true);
     
-    setImg(null);
+    setImg(require('./assets/select.png'));
 
     let resultadoPermisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
@@ -41,6 +43,8 @@ export default function App() {
     }
 
     setImg({uri: pickerResult.uri});
+    setType('ok')
+    setMensajito('Obteniendo...');
 
     let imgObject = {
       uri: pickerResult.uri,
@@ -65,15 +69,18 @@ export default function App() {
       const datos = await resultado.json();
 
       setNombreActor(datos.actorName);
+      
       obtenerInfo(datos.actorName);
       
       setErrorsito(datos.error);
       console.log(errorsito);
-
+      
       setModal(true);
       setIsPending(false);
     } catch (e) {
-      console.log('Se exedió el número de peticiones');
+      
+      setMensajito('Error desconocido, vuelva a intentarlo');
+      setType('error');
     }
     
   }
@@ -97,7 +104,8 @@ export default function App() {
 
       setIsPending(false);
     } catch (e) {
-      console.log('Se exedió el número de peticiones');
+      setMensajito('Error desconocido, vuelva a intentarlo');
+      setType('error');
     }
 
   }
@@ -123,11 +131,23 @@ export default function App() {
         });
   
       });
+      
+      setMensajito('Selecciona una foto de algún famoso');
+      setType('ok');
     } catch(e) {
-      if(e.messsage !== "undefined is not a function"){
-        ToastAndroid.show(errorsito, ToastAndroid.SHORT);
+      if(e.messsage === "undefined is not a function (near '...datosActor.map...')"){
+        setMensajito('Error desconocido, vuelva a intentarlo');
+        setType('error');
+        console.log(e.message);
+      } else if(errorsito === "InvalidImageFormatException: Request has invalid image format") {
+        setMensajito('Solo se permite imagenes en formato .JPG o .PNG');
+        setType('error');
+        console.log(e.message);
       } else {
-        ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
+        // ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
+        setMensajito(errorsito);
+        setType('error');
+        console.log(e.message);
       }
       setModal(false);
     }
@@ -143,7 +163,7 @@ export default function App() {
       <TouchableOpacity onPress={abrirImagenAsync}>
         <Image style={styles.img} source={img !== null ? {uri:img.uri} : require('./assets/select.png')}/>
       </TouchableOpacity>
-      
+      <Text style={type !== 'error' ? styles.alertaOk : styles.alertaErr}>{mensajito}</Text>
       <StatusBar style="auto" />
       { img ? (
           <>
@@ -152,7 +172,11 @@ export default function App() {
                 <Modal
                   styles={styles.modal}
                   animationType='slide'
-                  onDismiss={() => console.log('Cerrando modal')}
+                  onDismiss={() => {
+                    setMovies([]);
+                    setDatosActor({});
+                    setNombreActor("");
+                  }}
                   onShow={ordenarInfo}
                   // transparent
                   visible={modal}
@@ -168,7 +192,6 @@ export default function App() {
                         <TouchableOpacity
                           onPress={()=> {
                             setMovies([]);
-                            setImg(null);
                             setDatosActor({});
                             setNombreActor("");
                             setModal(false);
@@ -257,6 +280,20 @@ const styles = StyleSheet.create({
     borderRadius: 80,
     margin: 40,
     // resizeMode: 'contain'
+  },
+
+  alertaOk: {
+    backgroundColor: '#3843d0',
+    color: '#f1f5f9',
+    padding: 15,
+    borderRadius:10
+  },
+
+  alertaErr: {
+    backgroundColor: '#F75555',
+    color: '#f1f5f9',
+    padding: 15,
+    borderRadius:10
   },
 
   botonContainer: {
