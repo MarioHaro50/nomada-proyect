@@ -108,6 +108,8 @@ export default function App() {
       setType('error');
     }
 
+    setIsPending(false);
+
   }
 
   const ordenarInfo = () => {
