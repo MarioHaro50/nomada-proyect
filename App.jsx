@@ -30,6 +30,7 @@ export default function App() {
 
     setIsPending(true);
 
+    // Se solicitan permisos al celular para acceder a la galería
     let resultadoPermisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (resultadoPermisos.granted === false) {
@@ -43,22 +44,26 @@ export default function App() {
       return;
     }
 
+    // Al obtener la imagen, se guarda en la variable 'img'
     setImg({uri: pickerResult.uri});
     setType('#3843d0');
     setMensajito('Obteniendo...');
 
+    // Creamos el objeto que enviaremos a la API y así poder obtener el nombre
     let imgObject = {
       uri: pickerResult.uri,
       type: 'image/jpeg',
       name: 'photo.jpg'
     };
 
-    const url = 'https://whois.nomada.cloud/upload';
+    const url = 'https://whois.nomada.cloud/upload'; // url de la API
     const formData = new FormData();
 
-    formData.append('file', imgObject);
+    formData.append('file', imgObject); // Con esto guardamos el Object de la imagen en el formData que enviaremos
 
+    // Creamos un tryCatch por si falla el envio de datos
     try {
+      // Enviamos otro objeto con la imagen a la API
       const resultado = await fetch(url, {
         method: 'post',
         headers: {
@@ -67,8 +72,9 @@ export default function App() {
         body: formData
       });
 
-      const datos = await resultado.json();
-
+      const datos = await resultado.json(); // Guardamos la respuesta que nos envía
+      
+      // Mostramos el nombre en pantalla
       setNombreActor(datos.actorName);
       
       obtenerInfo(datos.actorName);
@@ -86,30 +92,32 @@ export default function App() {
       }
       
     } catch (e) {
+      // En caso de que no lo reconozca, informarlo en la app
       setType('#EF4444');
-      setMensajito('Error de red o servidor');
+      setMensajito('No se reconoce al actor, intente con otro');
     }
     
     setIsPending(false);
     
   }
   
+  //* Funcion que obtiene toda la información del actor
   const obtenerInfo = async nombre => {
 
     setIsPending(true);
 
-    setDatosActor({});
+    setDatosActor({}); // Limpiamos el Object con los datos del actor por si ya existian
   
+    // Guardamos la url y el request en variables
     const urlInfo = `https://api.themoviedb.org/3/search/person?api_key=30db1237b9167f8afaf9e065b90d16b8&language=en-US&query=${nombre}&page=1&include_adult=false`;
     const requestOptions = {
       method: 'GET'
     };
 
     try {
-      const resultadoInfo = await fetch(urlInfo, requestOptions);
-      const newDatos = await resultadoInfo.json();
-
-      setDatosActor(newDatos.results);
+      const resultadoInfo = await fetch(urlInfo, requestOptions); // Enviamos lo anteriormente guardado a la API para obtener la info del actor
+      const newDatos = await resultadoInfo.json(); 
+      setDatosActor(newDatos.results);// Guardamos la info que nos regresa
     } catch (e) {
       setType('#EF4444');
       setMensajito('Error de red o servidor');
@@ -119,16 +127,17 @@ export default function App() {
 
   }
 
+  //* Con esta función mostramos la información en pantalla
   const ordenarInfo = () => {
 
     setIsPending(true);
 
-    setMovies([]);
+    setMovies([]); // Limpiamos el array de las peliculas por si ya existen otras
 
-    let moviesList = [];
+    let moviesList = []; // Creamos un array local y vacío para después mandarlo a 'movies'
 
     try{
-       datosActor.map(info => {
+      datosActor.map(info => {
 
         setImgActor(info.profile_path);
         setPopularity(info.popularity);
@@ -140,20 +149,14 @@ export default function App() {
         });
   
       });
-      
-      setMensajito('Selecciona una foto de algún famoso');
-      setType('#3843D0');
+
     } catch(e) {
-      if(e.messsage === "undefined is not a function (near '...datosActor.map...')"){
-        setType('#EF4444');
-        setMensajito('Error de red o servidor');
-        console.log(e.message);
-      } else if(errorsito === "InvalidImageFormatException: Request has invalid image format") {
+      if(errorsito === "InvalidImageFormatException: Request has invalid image format") {
         setMensajito('Solo se permite imagenes en formato .JPG o .PNG');
         setType('#EAB308');
         console.log(e.message);
       } else {
-        setMensajito(errorsito);
+        setMensajito('Error de red o servidor, intente de nuevo.');
         setType('#EAB308');
         console.log(e.message);
       }
@@ -169,12 +172,16 @@ export default function App() {
     setIsPending(false);
   }
 
+  //* Función que limpia la pantalla principal y la información
   const limpiarForm = () => {
     setMovies([]);
     setDatosActor({});
     setNombreActor("");
     setModal(false);
     setImg(null);
+      
+    setMensajito('Selecciona una foto de algún famoso');
+    setType('#3843D0');
   }
   
   //! VISTA
