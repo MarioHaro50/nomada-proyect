@@ -8,6 +8,7 @@ import Movie from './components/Movie';
 
 
 export default function App() {
+  //! CÓDIGO
 
   //? VARIABLES CON useState
   const [img, setImg] = useState(null);
@@ -28,8 +29,6 @@ export default function App() {
   let abrirImagenAsync = async () => {
 
     setIsPending(true);
-    
-    setImg(require('./assets/select.png'));
 
     let resultadoPermisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
@@ -177,7 +176,8 @@ export default function App() {
     setModal(false);
     setImg(null);
   }
-
+  
+  //! VISTA
   return (
     <View style={styles.container}>
       <Text style={styles.title}>¿Quien es el famoso?</Text>
@@ -237,29 +237,27 @@ export default function App() {
                 <View style={styles.theContainer}>
                   <Text style={styles.pelisTitle}>Peliculas:</Text>
                   <ActivityIndicator style={{display: spinner, marginTop:130}} size={Number(70)} color="#3843d0" />
-                  {
-                    (movies !== [] && datosActor !== {})  ?
+                  {(movies !== [] && datosActor !== {})  ?
                     movies.map( (m, i) => {
                       return(
-                        m[0].original_title !== undefined || m[0].overview !== undefined || m[0].vote_average !== undefined || m[0].poster_path !== undefined  
-                        ? 
-                        <Movie
-                          key={i} 
-                          titleMovie={m[0].original_title}
-                          description={m[0].overview}
-                          val={m[0].vote_average}
-                          img={m[0].poster_path}
-                        /> 
-                        : 
-                        <Movie
-                          key={'N/A'} 
-                          titleMovie={m[0].original_title}
-                          val= {'N/A'}
-                          img={'N/A'}
-                        />
+                        m[0].original_title !== undefined || m[0].overview !== undefined || m[0].vote_average !== undefined || m[0].poster_path !== undefined ? (
+                          <Movie
+                            key={i} 
+                            titleMovie={m[0].original_title}
+                            description={m[0].overview}
+                            val={m[0].vote_average}
+                            img={m[0].poster_path}
+                          /> 
+                        ) : (
+                          <Movie
+                            key={'N/A'} 
+                            titleMovie={m[0].original_title}
+                            val= {'N/A'}
+                            img={'N/A'}
+                          />
+                        )
                       )
-                    }) : null
-                  }
+                    }) : null}
                 </View>
               </ScrollView>
             </Modal>
@@ -270,6 +268,7 @@ export default function App() {
   );
 }
 
+//! Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
