@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, ToastAndroid, Text, View, Image, Modal, TouchableOpacity, ScrollView, ImageBackground, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, TouchableOpacity, ScrollView, ImageBackground, ActivityIndicator } from 'react-native';
 // import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
 // import { Icon } from 'react-native-elements';
@@ -9,6 +9,7 @@ import Movie from './components/Movie';
 
 export default function App() {
 
+  //? VARIABLES CON useState
   const [img, setImg] = useState(null);
   const [isPending, setIsPending] = useState(false);
   const [nombreActor, setNombreActor] = useState("");
@@ -23,7 +24,7 @@ export default function App() {
   const [spinner, setSpinner] = useState('none');
 
   
-  //! ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
+  //* ESTA FUNCION PIDE PERMISOS PARA PODER TENER ACCESO A TUS IMAGENES
   let abrirImagenAsync = async () => {
 
     setIsPending(true);
@@ -153,7 +154,6 @@ export default function App() {
         setType('#EAB308');
         console.log(e.message);
       } else {
-        // ToastAndroid.show(e.messsage, ToastAndroid.SHORT);
         setMensajito(errorsito);
         setType('#EAB308');
         console.log(e.message);
@@ -170,105 +170,102 @@ export default function App() {
     setIsPending(false);
   }
 
+  const limpiarForm = () => {
+    setMovies([]);
+    setDatosActor({});
+    setNombreActor("");
+    setModal(false);
+    setImg(null);
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>¿Quien es el famoso?</Text>
       <TouchableOpacity onPress={abrirImagenAsync}>
-        <Image style={styles.img} source={img !== null ? {uri:img.uri} : require('./assets/select.png')}/>
+        { img !== null ? (
+            <Image style={styles.img} source={{uri:img.uri}}/>
+          ) : (
+            <View>
+              <Image style={{marginVertical: 121}} source={require('./assets/select.png')}/>
+            </View>
+          )
+        }
       </TouchableOpacity>
       <Text 
         style={{
           backgroundColor: type,
           color: '#f1f5f9',
           padding: 15,
-          borderRadius:10
+          borderRadius:10,
+          fontWeight: 'bold'
         }}
       >
         {mensajito}
       </Text>
       <StatusBar style="auto" />
       { img ? (
-          <>
-            { 
-              isPending === false ? (
-                <Modal
-                  styles={styles.modal}
-                  animationType='slide'
-                  onDismiss={() => {
-                    setMovies([]);
-                    setDatosActor({});
-                    setNombreActor("");
-                  }}
-                  onShow={ordenarInfo}
-                  // transparent
-                  visible={modal}
+        <>
+          {isPending === false ? (
+            <Modal
+              styles={styles.modal}
+              animationType='slide'
+              onDismiss={limpiarForm}
+              onShow={ordenarInfo}
+              visible={modal}
+            >
+              <ScrollView>
+                <ImageBackground 
+                  source={imgActor !== null ? {uri:`https://image.tmdb.org/t/p/w500${imgActor}`} : {uri:img.uri}}
+                  style={styles.fondo}
                 >
-                  <ScrollView>
-                    <ImageBackground 
-                      source={imgActor !== null ? {uri:`https://image.tmdb.org/t/p/w500${imgActor}`} : {uri:img.uri}}
-                      
-                      style={styles.fondo}
+                  <View style={styles.botonContainer}>
+                    <TouchableOpacity
+                      onPress={limpiarForm}
+                      style={styles.button}
                     >
-
-                      <View style={styles.botonContainer}>
-                        <TouchableOpacity
-                          onPress={()=> {
-                            setMovies([]);
-                            setDatosActor({});
-                            setNombreActor("");
-                            setModal(false);
-                          }}
-                          style={styles.button}
-                        >
-                        <Text style={styles.button__Text}>↩</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View style={styles.mainContainer}>
-                        <Text style={styles.actorName}>{nombreActor}</Text>
-                        <View style={styles.popContainer}>
-                          <Text style={styles.pop}>Popularidad</Text>
-                          <Text style={styles.calif}>⭐{popularity}</Text>
-                        </View>
-                      </View>
-                    </ImageBackground>
-                    <View style={styles.theContainer}>
-                      <Text style={styles.pelisTitle}>Peliculas:</Text>
-                      <ActivityIndicator style={{display: spinner}} size='large' color="#3843d0" />
-                      {
-                        (movies !== [] && datosActor !== {})  ?
-                        movies.map( (m, i) => {
-                          return(
-                            m[0].original_title !== undefined || m[0].overview !== undefined ||
-                            m[0].vote_average !== undefined || m[0].poster_path !== undefined  ? 
-                            <Movie
-                              key={i} 
-                              titleMovie={m[0].original_title}
-                              description={m[0].overview}
-                              val={m[0].vote_average}
-                              img={m[0].poster_path}
-                            /> 
-                            : 
-                            <Movie
-                              key={'N/A'} 
-                              titleMovie={m[0].original_title}
-                              val= {'N/A'}
-                              img={'N/A'}
-                            />
-                          )
-                        }) : null
-                      }
+                    <Text style={styles.button__Text}>←</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.mainContainer}>
+                    <Text style={styles.actorName}>{nombreActor}</Text>
+                    <View style={styles.popContainer}>
+                      <Text style={styles.pop}>Popularidad</Text>
+                      <Text style={styles.calif}>⭐{popularity}</Text>
                     </View>
-                  </ScrollView>
-                </Modal>
-              ) : (
-                null
-              )
-            }
-          </>
-        ) : (
-          <View/>
-        )
-      }
+                  </View>
+                </ImageBackground>
+                <View style={styles.theContainer}>
+                  <Text style={styles.pelisTitle}>Peliculas:</Text>
+                  <ActivityIndicator style={{display: spinner, marginTop:130}} size={Number(70)} color="#3843d0" />
+                  {
+                    (movies !== [] && datosActor !== {})  ?
+                    movies.map( (m, i) => {
+                      return(
+                        m[0].original_title !== undefined || m[0].overview !== undefined || m[0].vote_average !== undefined || m[0].poster_path !== undefined  
+                        ? 
+                        <Movie
+                          key={i} 
+                          titleMovie={m[0].original_title}
+                          description={m[0].overview}
+                          val={m[0].vote_average}
+                          img={m[0].poster_path}
+                        /> 
+                        : 
+                        <Movie
+                          key={'N/A'} 
+                          titleMovie={m[0].original_title}
+                          val= {'N/A'}
+                          img={'N/A'}
+                        />
+                      )
+                    }) : null
+                  }
+                </View>
+              </ScrollView>
+            </Modal>
+          ) : null}
+        </>
+      ) : <View/>}
     </View>
   );
 }
@@ -300,9 +297,8 @@ const styles = StyleSheet.create({
   img: {
     height: 300,
     width: 300,
-    borderRadius: 80,
-    margin: 40,
-    // resizeMode: 'contain'
+    borderRadius: 40,
+    margin: 40
   },
 
   botonContainer: {
@@ -313,8 +309,8 @@ const styles = StyleSheet.create({
   button: {
     display: 'flex',
     backgroundColor: "#ffffff77",
-    width: 65,
-    height: 65,
+    width: 60,
+    height: 60,
     margin: 15,
     borderRadius: 60,
     justifyContent: 'center',
@@ -323,7 +319,7 @@ const styles = StyleSheet.create({
 
   button__Text: {
     color: '#0f172a',
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
 
   textButton: {

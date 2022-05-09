@@ -14,9 +14,7 @@ const Movie = (props) => {
               source={{uri:`https://image.tmdb.org/t/p/w500${props.img}`}}
               style={styles.imgMovie}
             />
-          )
-          :
-          <Text>N/A</Text>
+          ) : <Text>N/A</Text>
         }
         <Text style={styles.val}>⭐{props.val}</Text>
       </View>
@@ -67,8 +65,8 @@ const styles = StyleSheet.create({
   },
 
   imgMovie: {
-    width:140,
-    height: 240,
+    width: 140,
+    height: 210,
     borderRadius: 20
   }
 });
